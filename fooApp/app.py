@@ -1,7 +1,7 @@
 from bson.objectid import ObjectId
-from flask import Flask, render_template, abort, redirect, request, url_for
+from flask import Flask, render_template, abort, redirect, request, url_for, jsonify
 from flask_pymongo import PyMongo
-
+import bson
 from fooApp.forms import ProductForm
 
 app = Flask(__name__)
@@ -68,6 +68,16 @@ def product_delete(product_id):
         response.status = 404
         return response
     return jsonify({'status': 'OK'})
+
+
+@app.errorhandler(404)
+def error_not_found(error):
+    return render_template('error/not_found.html'), 404
+
+
+@app.errorhandler(bson.errors.InvalidId)
+def error_not_found(error):
+    return render_template('error/not_found.html'), 404
 
 
 if __name__ == "__main__":
