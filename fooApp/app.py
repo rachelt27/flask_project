@@ -54,7 +54,22 @@ def product_detail(product_id):
     methods=['GET', 'POST'])
 @login_required
 def product_edit(product_id):
-    return 'Form to edit product #.'.format(product_id)
+    result = mongo.db.products.find_one({"_id": ObjectId(product_id)})
+
+    if result is None:
+        response = jsonify({'status': 'Not Found'})
+        response.status = 404
+        return response
+
+    if request.method == 'POST':
+        form = ProductForm(request.form)
+        if form.validate():
+            mongo.db.products.update_one({"_id": ObjectId(product_id)}, {"$set": form.data}, upsert=False)
+            # Success. Send user back to full product list.
+            return redirect(url_for('products_list'))
+
+    form = ProductForm(data=result)
+    return render_template('product/edit.html', form=form)
 
 
 @app.route('/products/create/', methods=['GET', 'POST'])
