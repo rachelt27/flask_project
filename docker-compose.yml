@@ -1,0 +1,9 @@
+version: '3.0'
+
+services:
+  mongodb:
+    hostname: mongodb
+    container_name: mongodb
+    image: mongo:latest
+    ports:
+      - "0.0.0.0:27017:27017"

@@ -9,21 +9,23 @@
           rel="stylesheet">
     <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
-    {# Link any other .css or .js found in app static folder. #}
-    <style>
-        {
-            # Add simple CSS style tweaks here . #
-        }
-    </style>
     <script>
-        $(function () {
-            {#
-                Add;
-                page - load;
-                JavaScript;
-                here.;
-            #
-            }
+        $(function() {
+            $(".product-delete-link").on("click", function() {
+                var delete_url = $(this).attr('data-delete-url');
+                $.ajax({
+                    url: delete_url,
+                    type: 'DELETE',
+                    success: function(response) {
+                        if (response.status == 'OK') {
+                            window.location = {{ url_for('products_list') }};
+                        } else {
+                            alert('Delete failed.')
+                        }
+                    }
+                });
+                return false;
+            });
         });
     </script>
     {% block extra_head %}{% endblock extra_head %}
