@@ -3,14 +3,23 @@ from flask import Flask, render_template, abort, redirect, request, url_for, jso
 from flask_pymongo import PyMongo
 import bson
 from fooApp.forms import ProductForm
+from flask_login import LoginManager, current_user, login_required, login_user, logout_user
+from fooApp.forms import LoginForm
+from fooApp.models import User
 
 app = Flask(__name__)
 
 app.config['MONGO_DBNAME'] = 'foodb'
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/foodb'
 
+app.config['SECRET_KEY'] = 'ghgdhjg66529' # Create your own.
+app.config['SESSION_PROTECTION'] = 'strong'
+
 mongo = PyMongo(app)
 
+login_manager = LoginManager()
+login_manager.setup_app(app)
+login_manager.login_view = 'login'
 
 @app.route('/')
 def index():
@@ -42,11 +51,13 @@ def product_detail(product_id):
 @app.route(
     '/products/<product_id>/edit/',
     methods=['GET', 'POST'])
+@login_required
 def product_edit(product_id):
     return 'Form to edit product #.'.format(product_id)
 
 
 @app.route('/products/create/', methods=['GET', 'POST'])
+@login_required
 def product_create():
     """Provide HTML form to create a new product."""
     form = ProductForm(request.form)
@@ -59,6 +70,7 @@ def product_create():
 
 
 @app.route('/products/<product_id>/delete/', methods=['DELETE'])
+@login_required
 def product_delete(product_id):
     """Delete record using HTTP DELETE, respond with JSON."""
     result = mongo.db.products.delete_one({ "_id": ObjectId(product_id) })
@@ -70,6 +82,31 @@ def product_delete(product_id):
     return jsonify({'status': 'OK'})
 
 
+@app.route('/login/', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('products_list'))
+    form = LoginForm(request.form)
+    error = None
+    if request.method == 'POST' and form.validate():
+        username = form.username.data.lower().strip()
+        password = form.password.data.lower().strip()
+        user = mongo.db.users.find_one({"username": form.username.data})
+        if user and User.validate_login(user['password'], form.password.data):
+            user_obj = User(user['username'])
+            login_user(user_obj)
+            return redirect(url_for('products_list'))
+        else:
+            error = 'Incorrect username or password.'
+    return render_template('user/login.html',
+                           form=form, error=error)
+
+
+@app.route('/logout/')
+def logout():
+    logout_user()
+    return redirect(url_for('products_list'))
+
 @app.errorhandler(404)
 def error_not_found(error):
     return render_template('error/not_found.html'), 404
@@ -78,6 +115,15 @@ def error_not_found(error):
 @app.errorhandler(bson.errors.InvalidId)
 def error_not_found(error):
     return render_template('error/not_found.html'), 404
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Flask-Login hook to load a User instance from ID."""
+    u = mongo.db.users.find_one({"username": user_id})
+    if not u:
+        return None
+    return User(u['username'])
 
 
 if __name__ == "__main__":
