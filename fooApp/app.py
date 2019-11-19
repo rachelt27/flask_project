@@ -1,11 +1,11 @@
-from flask import Flask, make_response, request, Response, url_for
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
 
 @app.route('/')
-def hello():
-    return "Hello world!"
+def index():
+    return render_template("index.html")
 
 
 @app.route('/products/')
@@ -26,7 +26,7 @@ def product_edit(product_id):
 
 
 @app.route('/products/create/', methods=['GET', 'POST'])
-def product():
+def product_create():
     return 'Form to create a new product.'
 
 
