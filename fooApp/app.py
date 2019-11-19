@@ -9,8 +9,8 @@ from fooApp.models import User
 
 app = Flask(__name__)
 
-app.config['MONGO_DBNAME'] = 'foodb'
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/foodb'
+app.config['MONGO_DBNAME'] = 'heroku_69p5ltw4'
+app.config['MONGO_URI'] = 'mongodb://heroku_69p5ltw4:9b044r5do5us9q18v3a33vv2vt@ds263791.mlab.com:63791/heroku_69p5ltw4?retryWrites=false'
 
 app.config['SECRET_KEY'] = 'ghgdhjg66529' # Create your own.
 app.config['SESSION_PROTECTION'] = 'strong'
@@ -20,6 +20,7 @@ mongo = PyMongo(app)
 login_manager = LoginManager()
 login_manager.setup_app(app)
 login_manager.login_view = 'login'
+
 
 @app.route('/')
 def index():
